@@ -1,7 +1,7 @@
-- 👋 Hi, I’m @kevinrajkumar05
-- 👀 I’m interested in Azure cloud technologies
-- 🌱 I’m currently learning postgraduate diploma in Information technology
-- 💞️ I’m looking to collaborate on ...
+- 👋 Hi, I’m @kevin dessam xavier
+- 👀 I’m interested in cloud technologies
+- 🌱 I’m currently working has a cloud infrastructure engineer
+- 💞️ I’m curently progressing my knowlsge in IAC, CAC and cloud security. 
 - 📫 How to reach me is through kevin.xavfat@gmail.com 
 
 <!---
