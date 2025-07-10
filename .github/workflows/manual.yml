@@ -1,51 +1,67 @@
-
 name: Azure Machine Configuration CI
 
 on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
-  configure-policy:
-    runs-on: ubuntu-latest
+  configure-policy:
+    runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-     - name: Install PowerShell
-        run: |
+      - name: Install PowerShell
+        run: |
           sudo apt-get update
-          sudo apt-get install -y wget apt-transport-https software-properties-common
+          sudo apt-get install -y wget apt-transport-https software-properties-common
+          wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
+          sudo dpkg -i packages-microsoft-prod.deb
+          sudo apt-get update
+          sudo apt-get install -y powershell
+          pwsh -v
 
-     - name: Run Bash PowerShell
-       run: |
-          wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
-          sudo dpkg -i packages-microsoft-prod.deb
-          sudo apt-get update
-          sudo apt-get install -y powershell
-          pwsh -
+      - name: Install GuestConfiguration Module
+        shell: pwsh
+        run: |
+          Install-Module -Name GuestConfiguration -Force -Scope CurrentUser
 
-     - name: Install GuestConfiguration Module
-        shell: pwsh
-        run: |
-          Install-Module -Name GuestConfiguration -Force
+      - name: Package Configuration
+        shell: pwsh
+        run: |
+          New-GuestConfigurationPackage -Configuration './MyConfig' -Name 'MyConfig'
 
-      - name: Package Configuration
-        shell: pwsh
-        run: |
-          New-GuestConfigurationPackage -Configuration './MyConfig' -Name 'MyConfig'
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Create Guest Configuration Policy
+        shell: pwsh
+        run: |
+          $PolicyParameterInfo = @(
+            @{
+              Name = 'ServiceName'
+              DisplayName = 'windows service name.'
+              Description = 'Name of the windows service to be audited.'
+              ResourceType = 'Service'
+              ResourceId = 'UserSelectedNameExample'
+              ResourcePropertyName = 'Name'
+              DefaultValue = 'winrm'
+              AllowedValues = @('BDESVC','TermService','wuauserv','winrm')
+            }
+          )
 
-      - name: Upload to Azure Blob Storage
-        run: |
-          az storage blob upload \
-            --account-name mystorageaccount \
-            --container-name guestconfigs \
-            --file MyConfig.zip \
-            --name MyConfig.zip
+          $PolicyParam = @{
+            PolicyId      = '00000000-0000-0000-0000-000000000000'  # Replace with a real GUID
+            ContentUri    = 'https://yourstorage.blob.core.windows.net/guestconfigs/MyConfig.zip'  # Replace with your actual blob URI
+            DisplayName   = 'Audit Windows Service.'
+            Description   = "Audit if a Windows Service isn't enabled on Windows machine."
+            Path          = '.\\policies\\auditIfNotExists.json'
+            Parameter     = $PolicyParameterInfo
+            PolicyVersion = '1.0.0'
+          }
+
+          New-GuestConfigurationPolicy @PolicyParam
