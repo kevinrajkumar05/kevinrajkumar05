@@ -1,0 +1,39 @@
+
+name: Azure Machine Configuration CI
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  configure-policy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+
+     - name: Install GuestConfiguration Module
+        shell: pwsh
+        run: |
+          Install-Module -Name GuestConfiguration -Force -Scope CurrentUser
+
+      - name: Package Configuration
+        shell: pwsh
+        run: |
+          New-GuestConfigurationPackage -Configuration './MyConfig' -Name 'MyConfig'
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Upload to Azure Blob Storage
+        run: |
+          az storage blob upload \
+            --account-name mystorageaccount \
+            --container-name guestconfigs \
+            --file MyConfig.zip \
+            --name MyConfig.zip
