@@ -1,0 +1,28 @@
+
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+
+on:
+  push:
+    branches: [ main ]
+
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install PowerShell Modules
+        shell: pwsh
+        run: |
+          Install-Module -Name GuestConfiguration -Force -Scope CurrentUser
+
+      - name: Package Configuration
+        shell: pwsh
+        run: |
+          New-GuestConfigurationPackage -Configuration './MyConfig' -Name 'MyConfig'
