@@ -28,10 +28,27 @@ jobs:
         run: |
           Install-Module -Name GuestConfiguration -Force -Scope CurrentUser
 
+      - name: Compile DSC Configuration
+        shell: pwsh
+        run: |
+          Configuration EnsureService {
+              Import-DscResource -ModuleName PSDesiredStateConfiguration
+
+              Node localhost {
+                  Service 'UserSelectedNameExample' {
+                      Name   = 'winrm'
+                      Ensure = 'Present'
+                      State  = 'Running'
+                  }
+              }
+          }
+
+          EnsureService -OutputPath "./MyConfig"
+
       - name: Package Configuration
         shell: pwsh
         run: |
-          New-GuestConfigurationPackage -Configuration '/home/runner/work/kevinrajkumar05/kevinrajkumar05/MyConfig' -Name 'MyConfig'
+          New-GuestConfigurationPackage -Configuration './MyConfig' -Name 'MyConfig'
 
       - name: Azure Login
         uses: azure/login@v1
