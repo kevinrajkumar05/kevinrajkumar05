@@ -31,7 +31,7 @@ jobs:
       - name: Package Configuration
         shell: pwsh
         run: |
-          New-GuestConfigurationPackage -Configuration './MyConfig' -Name 'MyConfig'
+          New-GuestConfigurationPackage -Configuration '/home/runner/work/kevinrajkumar05/kevinrajkumar05/MyConfig' -Name 'MyConfig'
 
       - name: Azure Login
         uses: azure/login@v1
