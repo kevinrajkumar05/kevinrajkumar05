@@ -18,7 +18,7 @@ jobs:
      - name: Install GuestConfiguration Module
         shell: pwsh
         run: |
-          Install-Module -Name GuestConfiguration -Force -Scope CurrentUser
+          Install-Module -Name GuestConfiguration -Force
 
       - name: Package Configuration
         shell: pwsh
